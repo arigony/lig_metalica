@@ -1,0 +1,832 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ligação Metálica | Guia de Estudo Interativo</title>
+  <!-- v3: correção de salto visual em canvas: tamanho CSS fixo e resize sem realimentação de layout -->
+  <meta name="description" content="Guia de estudo interativo sobre ligação metálica, mar de elétrons, estruturas cristalinas e propriedades dos metais." />
+  <style>
+    :root{
+      --bg:#0b1020;
+      --panel:#121a33;
+      --panel-2:#172343;
+      --text:#eef4ff;
+      --muted:#b9c6dd;
+      --line:rgba(255,255,255,.16);
+      --accent:#63e6be;
+      --accent2:#70a7ff;
+      --accent3:#ffd166;
+      --danger:#ff6b6b;
+      --ok:#51cf66;
+      --shadow:0 18px 60px rgba(0,0,0,.35);
+      --radius:24px;
+      --max:1180px;
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      color:var(--text);
+      font-family:Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(112,167,255,.23), transparent 30rem),
+        radial-gradient(circle at 80% 8%, rgba(99,230,190,.16), transparent 26rem),
+        radial-gradient(circle at 50% 65%, rgba(255,209,102,.07), transparent 34rem),
+        var(--bg);
+      line-height:1.55;
+      overflow-x:hidden;
+    }
+    a{color:var(--accent); text-decoration:none}
+    a:hover{text-decoration:underline}
+    .wrap{width:min(var(--max), calc(100% - 32px)); margin-inline:auto}
+    header.hero{position:relative; min-height:88svh; display:grid; place-items:center; padding:72px 0 48px; overflow:hidden}
+    #heroCanvas{position:absolute; inset:0; width:100%; height:100%; opacity:.55; filter:saturate(1.1)}
+    .hero-card{position:relative; z-index:2; border:1px solid var(--line); background:linear-gradient(180deg, rgba(18,26,51,.86), rgba(18,26,51,.62)); backdrop-filter:blur(16px); border-radius:32px; padding:clamp(24px, 5vw, 56px); box-shadow:var(--shadow); overflow:hidden}
+    .hero-card::after{content:""; position:absolute; width:240px; height:240px; border-radius:50%; background:radial-gradient(circle, rgba(99,230,190,.16), transparent 70%); right:-80px; top:-80px; pointer-events:none}
+    .kicker{display:inline-flex; align-items:center; gap:10px; padding:8px 12px; border:1px solid var(--line); border-radius:999px; color:var(--muted); background:rgba(255,255,255,.05); font-weight:700; letter-spacing:.02em; font-size:.9rem}
+    .pulse-dot{width:10px; height:10px; border-radius:50%; background:var(--accent); box-shadow:0 0 0 0 rgba(99,230,190,.9); animation:pulse 1.8s infinite}
+    @keyframes pulse{70%{box-shadow:0 0 0 14px rgba(99,230,190,0)}100%{box-shadow:0 0 0 0 rgba(99,230,190,0)}}
+    h1{font-size:clamp(2.4rem, 6vw, 5.8rem); line-height:.95; margin:20px 0 18px; letter-spacing:-.06em}
+    .gradient{background:linear-gradient(90deg, var(--accent), var(--accent2), var(--accent3)); -webkit-background-clip:text; color:transparent}
+    .hero p.lead{font-size:clamp(1.05rem, 2vw, 1.35rem); color:var(--muted); max-width:850px; margin:0 0 28px}
+    .hero-actions{display:flex; flex-wrap:wrap; gap:12px; align-items:center}
+    .btn{display:inline-flex; align-items:center; justify-content:center; gap:9px; border:1px solid var(--line); background:rgba(255,255,255,.06); color:var(--text); padding:12px 16px; border-radius:999px; cursor:pointer; font-weight:800; transition:transform .2s ease, background .2s ease, border .2s ease}
+    .btn:hover{transform:translateY(-2px); text-decoration:none; background:rgba(255,255,255,.12); border-color:rgba(255,255,255,.26)}
+    .btn.primary{background:linear-gradient(90deg, rgba(99,230,190,.95), rgba(112,167,255,.95)); color:#07101d; border:0}
+    .btn.small{padding:8px 11px; font-size:.86rem}
+    .btn.motionToggle[aria-pressed="true"]{background:rgba(255,209,102,.16); border-color:rgba(255,209,102,.42)}
+    nav.topnav{position:sticky; z-index:50; top:0; background:rgba(11,16,32,.82); backdrop-filter:blur(18px); border-bottom:1px solid var(--line)}
+    .nav-inner{display:flex; align-items:center; justify-content:space-between; gap:16px; padding:10px 0}
+    .brand{display:flex; align-items:center; gap:10px; font-weight:900; letter-spacing:-.03em}
+    .brand-mark{width:34px; height:34px; display:grid; place-items:center; border-radius:12px; background:linear-gradient(135deg, var(--accent), var(--accent2)); color:#08101c; box-shadow:0 10px 24px rgba(99,230,190,.18)}
+    .nav-links{display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end}
+    .nav-actions{display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:flex-end}
+    .nav-links a{font-size:.9rem; color:var(--muted); padding:8px 10px; border-radius:999px}
+    .nav-links a:hover{background:rgba(255,255,255,.07); color:var(--text); text-decoration:none}
+    main{padding:46px 0 80px}
+    section{padding:34px 0; scroll-margin-top:70px}
+    .section-title{display:flex; align-items:end; justify-content:space-between; gap:20px; margin-bottom:18px}
+    .section-title h2{font-size:clamp(1.7rem, 3vw, 3rem); line-height:1; margin:0; letter-spacing:-.04em}
+    .section-title p{margin:0; color:var(--muted); max-width:560px}
+    .grid{display:grid; gap:18px}
+    .grid.two{grid-template-columns:repeat(2, minmax(0, 1fr))}
+    .grid.three{grid-template-columns:repeat(3, minmax(0, 1fr))}
+    .grid.four{grid-template-columns:repeat(4, minmax(0, 1fr))}
+    .card{border:1px solid var(--line); background:linear-gradient(180deg, rgba(23,35,67,.8), rgba(18,26,51,.68)); border-radius:var(--radius); padding:22px; box-shadow:0 12px 44px rgba(0,0,0,.18)}
+    .card h3{margin:0 0 10px; font-size:1.25rem; letter-spacing:-.02em}
+    .card p{color:var(--muted); margin:0 0 12px}
+    .card strong{color:var(--text)}
+    .tag{display:inline-flex; align-items:center; gap:6px; color:#07101d; background:var(--accent3); font-size:.78rem; font-weight:900; padding:5px 9px; border-radius:999px; margin-bottom:10px}
+    .tag.blue{background:var(--accent2)}
+    .tag.green{background:var(--accent)}
+    .tag.red{background:var(--danger); color:#fff}
+    .concept-list{display:grid; gap:10px; margin:0; padding:0; list-style:none}
+    .concept-list li{display:flex; gap:12px; align-items:flex-start; color:var(--muted); padding:11px 12px; background:rgba(255,255,255,.045); border:1px solid rgba(255,255,255,.08); border-radius:16px}
+    .concept-list .check{flex:0 0 auto; width:24px; height:24px; border-radius:50%; display:grid; place-items:center; background:rgba(99,230,190,.15); color:var(--accent); font-weight:900}
+    .sim{display:grid; grid-template-columns:minmax(0, 1.2fr) minmax(260px, .8fr); gap:18px; align-items:stretch}
+    .canvas-card{position:relative; height:clamp(340px, 42vw, 460px); min-height:340px; background:linear-gradient(180deg, rgba(4,9,22,.92), rgba(10,18,39,.92)); border-radius:var(--radius); overflow:hidden; border:1px solid var(--line)}
+    canvas{display:block; width:100%; height:100%}
+    .canvas-label{position:absolute; left:14px; top:14px; display:flex; gap:8px; flex-wrap:wrap; z-index:4}
+    .pill{font-size:.78rem; font-weight:800; color:var(--text); background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.12); border-radius:999px; padding:6px 9px; backdrop-filter:blur(10px)}
+    .controls{display:grid; gap:14px}
+    label.control{display:grid; gap:8px; color:var(--muted); font-weight:700}
+    label.control span{display:flex; justify-content:space-between; gap:10px}
+    input[type="range"]{width:100%; accent-color:var(--accent)}
+    select{width:100%; padding:12px 12px; border-radius:14px; border:1px solid var(--line); color:var(--text); background:rgba(255,255,255,.08); font-weight:800}
+    .readout{display:grid; gap:10px; padding:14px; border-radius:18px; background:rgba(255,255,255,.055); border:1px dashed rgba(255,255,255,.16)}
+    .metric{display:flex; align-items:center; justify-content:space-between; gap:12px; color:var(--muted); font-weight:800}
+    .metric b{color:var(--accent3)}
+    .table-wrap{overflow:auto; border-radius:18px; border:1px solid var(--line); background:rgba(255,255,255,.04)}
+    table{width:100%; border-collapse:collapse; min-width:620px}
+    th, td{padding:12px 14px; text-align:left; border-bottom:1px solid rgba(255,255,255,.1); color:var(--muted); vertical-align:top}
+    th{color:var(--text); background:rgba(255,255,255,.07); font-size:.9rem; letter-spacing:.02em}
+    tr:last-child td{border-bottom:0}
+    .compare-row{display:grid; grid-template-columns:1fr 1fr; gap:18px}
+    .mini-note{font-size:.92rem; color:var(--muted); border-left:3px solid var(--accent); padding:10px 12px; background:rgba(99,230,190,.065); border-radius:0 14px 14px 0}
+    .model-alert{border-left-color:var(--accent3); background:rgba(255,209,102,.09); margin-top:12px}
+    .motion-note{font-size:.9rem; color:var(--muted); margin-top:12px}
+    .flashcards{display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:14px}
+    .flip{perspective:1000px; min-height:168px; cursor:pointer}
+    .flip-inner{position:relative; width:100%; height:100%; min-height:168px; transition:transform .6s ease; transform-style:preserve-3d}
+    .flip.active .flip-inner{transform:rotateY(180deg)}
+    .flip-face{position:absolute; inset:0; border-radius:20px; border:1px solid var(--line); backface-visibility:hidden; padding:18px; display:flex; flex-direction:column; justify-content:space-between; background:linear-gradient(180deg, rgba(23,35,67,.9), rgba(18,26,51,.9)); box-shadow:0 12px 34px rgba(0,0,0,.16)}
+    .flip-face.back{transform:rotateY(180deg); background:linear-gradient(180deg, rgba(99,230,190,.2), rgba(18,26,51,.92))}
+    .flip small{color:var(--accent); font-weight:900}
+    .flip b{font-size:1.05rem}
+    .quiz{display:grid; gap:16px}
+    .q-card{border:1px solid var(--line); border-radius:22px; padding:18px; background:rgba(255,255,255,.045)}
+    .q-card h3{margin:0 0 12px; font-size:1.05rem}
+    .options{display:grid; gap:8px}
+    .option{border:1px solid rgba(255,255,255,.11); background:rgba(255,255,255,.055); color:var(--text); border-radius:14px; padding:12px; text-align:left; cursor:pointer; transition:.18s ease; font-weight:700}
+    .option:hover{background:rgba(255,255,255,.1)}
+    .option.correct{border-color:rgba(81,207,102,.8); background:rgba(81,207,102,.14)}
+    .option.wrong{border-color:rgba(255,107,107,.8); background:rgba(255,107,107,.13)}
+    .feedback{margin-top:10px; color:var(--muted); display:none; padding:11px 12px; border-radius:14px; background:rgba(255,255,255,.05)}
+    .feedback.show{display:block}
+    .progress{height:12px; background:rgba(255,255,255,.08); border-radius:999px; overflow:hidden; border:1px solid rgba(255,255,255,.1)}
+    .progress-bar{height:100%; width:0%; background:linear-gradient(90deg, var(--accent), var(--accent2)); transition:width .35s ease}
+    .callout{border:1px solid rgba(255,209,102,.35); background:linear-gradient(180deg, rgba(255,209,102,.11), rgba(255,255,255,.04)); border-radius:var(--radius); padding:22px}
+    .footer{border-top:1px solid var(--line); color:var(--muted); padding:30px 0 46px; font-size:.95rem}
+    .icon-row{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
+    .atomium{display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; width:min(330px, 100%); margin:auto}
+    .atomium .node{aspect-ratio:1; border-radius:50%; background:radial-gradient(circle at 30% 25%, #fff, #bfd2ff 18%, #6078ad 55%, #1e2e56 100%); box-shadow:inset -18px -16px 36px rgba(0,0,0,.35), 0 0 32px rgba(112,167,255,.2); position:relative}
+    .atomium .node::after{content:""; position:absolute; width:100%; height:6px; top:50%; left:58%; transform-origin:left center; background:linear-gradient(90deg, rgba(112,167,255,.8), transparent); border-radius:999px}
+    .atomium .node:nth-child(3)::after,.atomium .node:nth-child(6)::after,.atomium .node:nth-child(9)::after{display:none}
+    .bar-chart{display:grid; gap:10px}
+    .bar-row{display:grid; grid-template-columns:90px 1fr 74px; align-items:center; gap:10px; color:var(--muted); font-weight:800}
+    .bar-track{height:14px; border-radius:999px; background:rgba(255,255,255,.08); overflow:hidden; border:1px solid rgba(255,255,255,.1)}
+    .bar-fill{height:100%; width:0%; background:linear-gradient(90deg, var(--accent3), var(--danger)); border-radius:999px; transition:width .8s ease}
+    details{border:1px solid var(--line); border-radius:18px; padding:12px 14px; background:rgba(255,255,255,.04)}
+    summary{cursor:pointer; font-weight:900; color:var(--text)}
+    details p{margin:10px 0 0; color:var(--muted)}
+    .sr-only{position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0}
+    @media (max-width:980px){
+      .grid.two,.grid.three,.grid.four,.sim,.compare-row,.flashcards{grid-template-columns:1fr}
+      .flashcards{grid-template-columns:repeat(2, minmax(0,1fr))}
+      .nav-links{display:none}
+      .nav-inner{align-items:flex-start}
+      header.hero{min-height:auto; padding-top:42px}
+      .canvas-card{height:360px; min-height:320px}
+    }
+    @media (max-width:560px){
+      .wrap{width:min(100% - 22px, var(--max))}
+      .hero-card{border-radius:24px; padding:22px}
+      .flashcards{grid-template-columns:1fr}
+      .hero-actions .btn{width:100%}
+      .section-title{display:block}
+      .bar-row{grid-template-columns:72px 1fr 62px}
+      th,td{padding:10px}
+    }
+    @media (prefers-reduced-motion:reduce){
+      *{scroll-behavior:auto!important; animation:none!important; transition:none!important}
+    }
+  </style>
+</head>
+<body>
+  <header class="hero" id="inicio">
+    <canvas id="heroCanvas" aria-hidden="true"></canvas>
+    <div class="wrap">
+      <div class="hero-card">
+        <span class="kicker"><span class="pulse-dot"></span> Guia de estudo interativo · Química Geral</span>
+        <h1>Ligação <span class="gradient">Metálica</span></h1>
+        <p class="lead">Uma página única para estudar o “mar de elétrons”, redes cristalinas e as propriedades dos sólidos metálicos com animações, simulações, tabelas e perguntas com feedback formativo.</p>
+        <div class="hero-actions">
+          <a class="btn primary" href="#simulador">Começar pelas simulações</a>
+          <a class="btn" href="#roteiro">Ver roteiro de estudo</a>
+          <a class="btn" href="#quiz">Fazer revisão ativa</a>
+          <button class="btn motionToggle" type="button" aria-pressed="false">▶ Iniciar animações</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <nav class="topnav" aria-label="Navegação principal">
+    <div class="wrap nav-inner">
+      <div class="brand"><span class="brand-mark">M</span> Ligação metálica</div>
+      <div class="nav-actions">
+        <div class="nav-links">
+          <a href="#conceito">Conceito</a>
+          <a href="#simulador">Mar de elétrons</a>
+          <a href="#cristais">Cristais</a>
+          <a href="#propriedades">Propriedades</a>
+          <a href="#tabelas">Tabelas</a>
+          <a href="#quiz">Quiz</a>
+        </div>
+        <button class="btn small motionToggle" type="button" aria-pressed="false">▶ Iniciar</button>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+    <section id="roteiro" class="wrap">
+      <div class="section-title">
+        <h2>Roteiro de estudo</h2>
+        <p>Use esta sequência para entender primeiro o modelo microscópico e depois explicar as propriedades macroscópicas dos metais.</p>
+      </div>
+      <div class="grid four">
+        <article class="card">
+          <span class="tag green">1</span>
+          <h3>Modelo</h3>
+          <p>Metais têm poucos elétrons de valência, em geral 1, 2 ou 3, pouco atraídos pelo núcleo. Eles ficam deslocalizados no sólido.</p>
+        </article>
+        <article class="card">
+          <span class="tag blue">2</span>
+          <h3>Rede</h3>
+          <p>Os átomos metálicos são representados, no modelo simplificado, como caroços positivos organizados em rede cristalina e envolvidos por elétrons móveis.</p>
+        </article>
+        <article class="card">
+          <span class="tag">3</span>
+          <h3>Estrutura</h3>
+          <p>Compare as células unitárias CCC, CFC e HC e relacione cada uma a exemplos de metais.</p>
+        </article>
+        <article class="card">
+          <span class="tag red">4</span>
+          <h3>Propriedades</h3>
+          <p>Explique brilho, maleabilidade, ductilidade, ligas, condutividade e altos pontos de fusão/ebulição a partir do modelo.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="conceito" class="wrap">
+      <div class="section-title">
+        <h2>O que é ligação metálica?</h2>
+        <p>É uma ligação coletiva: nenhum par de elétrons pertence a apenas dois átomos. A estabilidade nasce da atração entre uma rede de caroços metálicos positivos e elétrons de valência deslocalizados.</p>
+      </div>
+      <div class="grid two">
+        <article class="card">
+          <h3>Ideias essenciais</h3>
+          <ul class="concept-list">
+            <li><span class="check">✓</span><span>A ligação metálica ocorre entre átomos de metais.</span></li>
+            <li><span class="check">✓</span><span>Não é bem descrita pela regra do octeto, pois os elétrons não ficam localizados em pares específicos.</span></li>
+            <li><span class="check">✓</span><span>No modelo simplificado, os átomos metálicos são tratados como caroços positivos em uma rede, compensados por elétrons de valência deslocalizados.</span></li>
+            <li><span class="check">✓</span><span>Os elétrons de valência ficam livres para se mover por todo o sólido: é o “mar” ou “nuvem” de elétrons.</span></li>
+            <li><span class="check">✓</span><span>A coesão vem da atração eletrostática entre a rede positiva e os elétrons móveis; o sólido metálico, como um todo, permanece eletricamente neutro.</span></li>
+            <li><span class="check">✓</span><span>As ligações metálicas são não direcionais: a estrutura pode ser deformada sem quebrar imediatamente a coesão.</span></li>
+          </ul>
+          <p class="mini-note model-alert"><strong>Atenção ao modelo:</strong> falar em “cátions” no sólido metálico é uma representação didática. Não significa que o metal inteiro ficou carregado positivamente; a neutralidade é mantida pelos elétrons deslocalizados.</p>
+        </article>
+        <article class="card">
+          <h3>Imagem mental: Atomium</h3>
+          <p>Imagine um cristal metálico ampliado bilhões de vezes: posições ordenadas de átomos/cátions conectadas em três dimensões. O monumento Atomium, em Bruxelas, representa essa ideia de rede cristalina ampliada.</p>
+          <div class="atomium" aria-hidden="true">
+            <span class="node"></span><span class="node"></span><span class="node"></span>
+            <span class="node"></span><span class="node"></span><span class="node"></span>
+            <span class="node"></span><span class="node"></span><span class="node"></span>
+          </div>
+          <p class="mini-note">Pergunta-guia: se os elétrons não estão presos a um único cátion, que propriedades isso ajuda a explicar?</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="simulador" class="wrap">
+      <div class="section-title">
+        <h2>Simulação 1 · mar de elétrons</h2>
+        <p>Altere o número de elétrons de valência e a temperatura. Observe como cátions permanecem ordenados enquanto elétrons se movem pelo sólido.</p>
+      </div>
+      <div class="sim">
+        <div class="canvas-card">
+          <div class="canvas-label"><span class="pill">cátions metálicos +</span><span class="pill">elétrons deslocalizados −</span></div>
+          <canvas id="seaCanvas" aria-label="Animação do mar de elétrons em um sólido metálico"></canvas>
+        </div>
+        <aside class="card controls" aria-label="Controles da simulação do mar de elétrons">
+          <label class="control"><span>Elétrons de valência por átomo <b id="valenceValue">2</b></span><input id="valenceRange" type="range" min="1" max="3" value="2" step="1"></label>
+          <label class="control"><span>Temperatura relativa <b id="tempValue">50%</b></span><input id="tempRange" type="range" min="0" max="100" value="50"></label>
+          <div class="readout">
+            <div class="metric"><span>Modelo observado</span><b>rede + mar de elétrons</b></div>
+            <div class="metric"><span>Agitação térmica</span><b id="mobilityReadout">média</b></div>
+            <div class="metric"><span>Resistividade relativa</span><b id="resistReadout">1,50×</b></div>
+          </div>
+          <p>Interpretação: nos metais, o aumento de temperatura intensifica vibrações na rede e dificulta o fluxo ordenado de elétrons. Por isso, a resistividade aumenta e a condutividade diminui.</p><p class="motion-note">As animações começam pausadas para não distrair. Use o botão “Iniciar animações” quando quiser observar o movimento.</p>
+        </aside>
+      </div>
+    </section>
+
+    <section id="cristais" class="wrap">
+      <div class="section-title">
+        <h2>Estruturas cristalinas metálicas</h2>
+        <p>Arranjos ordenados de cátions metálicos imersos no mar de elétrons formam cristais. A repetição ocorre por células unitárias.</p>
+      </div>
+      <div class="sim">
+        <div class="canvas-card">
+          <div class="canvas-label"><span class="pill" id="cellPill">CCC · corpo centrado</span></div>
+          <canvas id="cellCanvas" aria-label="Simulação de células unitárias CCC, CFC e HC"></canvas>
+        </div>
+        <aside class="card controls">
+          <label class="control">Escolha a célula unitária
+            <select id="cellSelect">
+              <option value="bcc">CCC — Cúbica de Corpo Centrado</option>
+              <option value="fcc">CFC — Cúbica de Face Centrada</option>
+              <option value="hcp">HC — Hexagonal Compacta</option>
+            </select>
+          </label>
+          <div class="readout" id="cellReadout"></div>
+          <p class="mini-note">A célula unitária é uma unidade básica que se repete no espaço tridimensional e constrói a rede cristalina do metal.</p>
+        </aside>
+      </div>
+      <div class="grid three" style="margin-top:18px">
+        <article class="card"><span class="tag green">CCC</span><h3>Cúbica de Corpo Centrado</h3><p>Exemplos: ferro, cromo e tungstênio.</p></article>
+        <article class="card"><span class="tag blue">CFC</span><h3>Cúbica de Face Centrada</h3><p>Exemplos: níquel, cobre e ouro.</p></article>
+        <article class="card"><span class="tag">HC</span><h3>Hexagonal Compacta</h3><p>Exemplos: zinco, cádmio e berílio.</p></article>
+      </div>
+    </section>
+
+    <section id="propriedades" class="wrap">
+      <div class="section-title">
+        <h2>Propriedades dos sólidos metálicos</h2>
+        <p>O ponto central é sempre o mesmo: elétrons móveis + cátions organizados + ligação não direcional.</p>
+      </div>
+      <div class="grid three">
+        <article class="card"><span class="tag green">brilho</span><h3>Reflexão da luz</h3><p>Elétrons livres absorvem energia da luz, oscilam e reemitem radiação. Por isso metais refletem luz sob muitos ângulos.</p></article>
+        <article class="card"><span class="tag blue">forma</span><h3>Maleabilidade e ductilidade</h3><p>Os cátions podem se deslocar; o mar de elétrons se redistribui e mantém a coesão. Maleável: vira lâmina. Dúctil: vira fio.</p></article>
+        <article class="card"><span class="tag">ligas</span><h3>Soluções sólidas</h3><p>Metais formam ligas por fusão dos componentes seguida de resfriamento, alterando propriedades e aplicações.</p></article>
+        <article class="card"><span class="tag green">eletricidade</span><h3>Condutividade elétrica</h3><p>Um campo elétrico orienta o movimento dos elétrons entre os cátions da estrutura.</p></article>
+        <article class="card"><span class="tag blue">calor</span><h3>Condutividade térmica</h3><p>Elétrons livres carregam energia da região quente para regiões frias, favorecendo a condução de calor.</p></article>
+        <article class="card"><span class="tag red">energia</span><h3>Fusão e ebulição</h3><p>Em geral, metais têm pontos de fusão e ebulição elevados; a indústria usa fornos em altas temperaturas para metais fundidos.</p></article>
+      </div>
+    </section>
+
+    <section id="brilho" class="wrap">
+      <div class="section-title">
+        <h2>Simulação 2 · brilho metálico</h2>
+        <p>Veja a luz incidente, a oscilação eletrônica na superfície metálica e a onda refletida.</p>
+      </div>
+      <div class="sim">
+        <div class="canvas-card">
+          <div class="canvas-label"><span class="pill">ondas incidentes</span><span class="pill">elétrons oscilantes</span><span class="pill">ondas refletidas</span></div>
+          <canvas id="shineCanvas" aria-label="Simulação do brilho metálico por oscilação eletrônica"></canvas>
+        </div>
+        <aside class="card controls">
+          <label class="control"><span>Intensidade da luz <b id="lightValue">70%</b></span><input id="lightRange" type="range" min="10" max="100" value="70"></label>
+          <label class="control"><span>Frequência relativa <b id="freqValue">50%</b></span><input id="freqRange" type="range" min="10" max="100" value="50"></label>
+          <p>Quanto maior a energia da onda incidente, maior a oscilação coletiva dos elétrons na superfície. A reemissão explica o brilho característico.</p>
+        </aside>
+      </div>
+    </section>
+
+    <section id="deformacao" class="wrap">
+      <div class="section-title">
+        <h2>Simulação 3 · maleabilidade e ductilidade</h2>
+        <p>A ligação metálica é não direcional: quando cátions mudam de posição, os elétrons se ajustam rapidamente.</p>
+      </div>
+      <div class="sim">
+        <div class="canvas-card">
+          <div class="canvas-label"><span class="pill">martelo</span><span class="pill">deslocamento dos cátions</span><span class="pill">redistribuição dos elétrons</span></div>
+          <canvas id="malleabilityCanvas" aria-label="Simulação de maleabilidade e ductilidade em metais"></canvas>
+        </div>
+        <aside class="card controls">
+          <button class="btn primary" id="hammerBtn" type="button">Aplicar martelada</button>
+          <button class="btn" id="wireBtn" type="button">Puxar como fio</button>
+          <div class="readout">
+            <div class="metric"><span>Maleável</span><b>moldável em lâminas</b></div>
+            <div class="metric"><span>Dúctil</span><b>transformável em fio</b></div>
+            <div class="metric"><span>Exemplos do material</span><b>Au e Pt</b></div>
+          </div>
+          <p>O ouro é destacado como metal muito maleável; a platina, como muito dúctil. A explicação microscópica é a mesma: elétrons móveis mantêm a coesão durante o deslocamento dos cátions.</p>
+        </aside>
+      </div>
+    </section>
+
+    <section id="condutividade" class="wrap">
+      <div class="section-title">
+        <h2>Simulação 4 · condutividade elétrica e térmica</h2>
+        <p>Controle campo elétrico e temperatura. A animação mostra deriva eletrônica, espalhamento térmico e fluxo de energia.</p>
+      </div>
+      <div class="sim">
+        <div class="canvas-card">
+          <div class="canvas-label"><span class="pill">campo elétrico</span><span class="pill">elétrons móveis</span><span class="pill">calor: quente → frio</span></div>
+          <canvas id="conductCanvas" aria-label="Simulação de condutividade elétrica e térmica em metais"></canvas>
+        </div>
+        <aside class="card controls">
+          <label class="control"><span>Campo elétrico relativo <b id="fieldValue">55%</b></span><input id="fieldRange" type="range" min="0" max="100" value="55"></label>
+          <label class="control"><span>Temperatura do metal <b id="metalTempValue">45%</b></span><input id="metalTempRange" type="range" min="0" max="100" value="45"></label>
+          <div class="readout">
+            <div class="metric"><span>Condutividade relativa</span><b id="sigmaReadout">0,69×</b></div>
+            <div class="metric"><span>Resistividade relativa</span><b id="rhoReadout">1,45×</b></div>
+            <div class="metric"><span>Energia térmica</span><b id="heatReadout">média</b></div>
+          </div>
+          <p>Com o aumento da temperatura, a resistividade metálica aumenta. Em termos práticos: a corrente encontra mais oposição porque há mais vibração/espalhamento na rede.</p>
+        </aside>
+      </div>
+    </section>
+
+    <section id="ligas" class="wrap">
+      <div class="section-title">
+        <h2>Ligas metálicas</h2>
+        <p>Ligas são soluções sólidas preparadas por fusão dos componentes e resfriamento. Elas permitem ajustar cor, dureza, resistência e custo.</p>
+      </div>
+      <div class="sim">
+        <div class="canvas-card">
+          <div class="canvas-label"><span class="pill">solução sólida</span><span class="pill">átomos diferentes na rede</span></div>
+          <canvas id="alloyCanvas" aria-label="Simulação de liga metálica como solução sólida"></canvas>
+        </div>
+        <aside class="card controls">
+          <label class="control">Escolha uma liga
+            <select id="alloySelect">
+              <option value="latao">Latão</option>
+              <option value="bronze">Bronze</option>
+              <option value="cuproniquel">Cuproníquel</option>
+              <option value="pewter">Peltre</option>
+              <option value="solda">Solda</option>
+              <option value="inox">Aço inoxidável</option>
+              <option value="ouro18">Ouro amarelo 18K</option>
+              <option value="ouroVermelho">Ouro vermelho</option>
+              <option value="ouroBranco">Ouro branco</option>
+            </select>
+          </label>
+          <div class="readout" id="alloyReadout"></div>
+          <p class="mini-note">Observe que o material didático usa exemplos de ligas técnicas e também de ligas de ouro com diferentes cores.</p>
+        </aside>
+      </div>
+    </section>
+
+    <section id="tabelas" class="wrap">
+      <div class="section-title">
+        <h2>Tabelas de referência</h2>
+        <p>Use estes dados para comparar materiais e construir explicações quantitativas simples.</p>
+      </div>
+      <div class="grid two">
+        <article class="card">
+          <h3>Condutividade elétrica de alguns sólidos</h3>
+          <div class="table-wrap">
+            <table aria-label="Condutividade elétrica de alguns sólidos">
+              <thead><tr><th>Substância</th><th>Tipo de ligação</th><th>Condutividade (ohm⁻¹ cm⁻¹)</th></tr></thead>
+              <tbody>
+                <tr><td>Prata</td><td>Metálica</td><td>6,3 × 10⁵</td></tr>
+                <tr><td>Cobre</td><td>Metálica</td><td>6,0 × 10⁵</td></tr>
+                <tr><td>Sódio</td><td>Metálica</td><td>2,4 × 10⁵</td></tr>
+                <tr><td>Zinco</td><td>Metálica</td><td>1,7 × 10⁵</td></tr>
+                <tr><td>NaCl</td><td>Iônica</td><td>1,0 × 10⁻⁷</td></tr>
+                <tr><td>Diamante</td><td>Covalente</td><td>1,0 × 10⁻¹⁴</td></tr>
+                <tr><td>Quartzo</td><td>Covalente</td><td>1,0 × 10⁻¹⁴</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="mini-note">Leitura: os metais da tabela conduzem muito melhor porque possuem elétrons móveis no sólido.</p>
+        </article>
+        <article class="card">
+          <h3>Pontos de fusão e ebulição</h3>
+          <label class="control" style="margin-bottom:12px">Visualizar barras por
+            <select id="barSelect"><option value="fusion">ponto de fusão</option><option value="boiling">ponto de ebulição</option></select>
+          </label>
+          <div class="bar-chart" id="barChart" aria-label="Gráfico de barras de pontos de fusão e ebulição"></div>
+        </article>
+      </div>
+      <div class="card" style="margin-top:18px">
+        <h3>Composição de ligas citadas</h3>
+        <div class="table-wrap">
+          <table aria-label="Composição de ligas metálicas">
+            <thead><tr><th>Liga</th><th>Composição em porcentagem de massa</th><th>Comentário de estudo</th></tr></thead>
+            <tbody>
+              <tr><td>Latão</td><td>até 40% de zinco em cobre</td><td>Mostra substituição de átomos na matriz de cobre.</td></tr>
+              <tr><td>Bronze</td><td>outro metal que não zinco ou níquel em cobre; bronze para fundição: 10% Sn e 5% Pb</td><td>Exemplo clássico de liga de cobre.</td></tr>
+              <tr><td>Cuproníquel</td><td>níquel em cobre; cuproníquel de cunhagem: 25% de níquel</td><td>Usado em aplicações que exigem resistência e aparência metálica.</td></tr>
+              <tr><td>Peltre</td><td>6% de antimônio e 1,5% de cobre em estanho</td><td>Liga baseada em estanho.</td></tr>
+              <tr><td>Solda</td><td>estanho e chumbo</td><td>Exemplo de liga de baixo ponto de fusão relativo.</td></tr>
+              <tr><td>Aço inoxidável</td><td>acima de 12% de cromo em ferro</td><td>O cromo é central para resistência à corrosão.</td></tr>
+              <tr><td>Ouro vermelho</td><td>liga de ouro e cobre, com cerca de 25% de cobre</td><td>Cobre intensifica a coloração avermelhada.</td></tr>
+              <tr><td>Ouro amarelo 18K</td><td>ouro com 12,5% prata e 12,5% cobre</td><td>Exemplo de ajuste de cor e propriedades.</td></tr>
+              <tr><td>Ouro branco</td><td>ouro, prata 9% e paládio 16%</td><td>Paládio e prata clareiam a liga.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="resumo" class="wrap">
+      <div class="section-title">
+        <h2>Resumo visual para memorizar</h2>
+        <p>Clique nos cartões para virar e testar se você consegue explicar cada propriedade.</p>
+      </div>
+      <div class="flashcards" id="flashcards">
+        <div class="flip" tabindex="0"><div class="flip-inner"><div class="flip-face"><small>Modelo</small><b>Por que os elétrons ficam deslocalizados?</b><span>clique</span></div><div class="flip-face back"><small>Resposta</small><b>Metais têm poucos elétrons de valência e baixa atração relativa sobre eles; os elétrons passam a pertencer ao sólido.</b></div></div></div>
+        <div class="flip" tabindex="0"><div class="flip-inner"><div class="flip-face"><small>Coesão</small><b>O que mantém o metal unido?</b><span>clique</span></div><div class="flip-face back"><small>Resposta</small><b>A atração eletrostática entre cátions metálicos e elétrons deslocalizados.</b></div></div></div>
+        <div class="flip" tabindex="0"><div class="flip-inner"><div class="flip-face"><small>Brilho</small><b>Por que metais brilham?</b><span>clique</span></div><div class="flip-face back"><small>Resposta</small><b>Elétrons livres oscilam com a luz incidente e reemitem radiação, produzindo reflexão intensa.</b></div></div></div>
+        <div class="flip" tabindex="0"><div class="flip-inner"><div class="flip-face"><small>Forma</small><b>Por que podem virar lâminas ou fios?</b><span>clique</span></div><div class="flip-face back"><small>Resposta</small><b>As ligações são não direcionais; cátions podem deslizar e os elétrons se redistribuem.</b></div></div></div>
+        <div class="flip" tabindex="0"><div class="flip-inner"><div class="flip-face"><small>Eletricidade</small><b>Quem carrega a corrente no metal?</b><span>clique</span></div><div class="flip-face back"><small>Resposta</small><b>Os elétrons móveis, que se deslocam pela estrutura em resposta a um campo elétrico.</b></div></div></div>
+        <div class="flip" tabindex="0"><div class="flip-inner"><div class="flip-face"><small>Temperatura</small><b>O que ocorre com a resistividade?</b><span>clique</span></div><div class="flip-face back"><small>Resposta</small><b>Nos metais, a resistividade aumenta quando a temperatura aumenta; a condutividade diminui.</b></div></div></div>
+        <div class="flip" tabindex="0"><div class="flip-inner"><div class="flip-face"><small>Calor</small><b>Por que conduzem calor?</b><span>clique</span></div><div class="flip-face back"><small>Resposta</small><b>Elétrons livres transportam energia de regiões mais quentes para regiões mais frias.</b></div></div></div>
+        <div class="flip" tabindex="0"><div class="flip-inner"><div class="flip-face"><small>Ligas</small><b>O que é uma liga metálica?</b><span>clique</span></div><div class="flip-face back"><small>Resposta</small><b>Uma solução sólida obtida pela fusão de componentes e posterior resfriamento.</b></div></div></div>
+      </div>
+    </section>
+
+    <section id="quiz" class="wrap">
+      <div class="section-title">
+        <h2>Revisão ativa</h2>
+        <p>Responda e leia o feedback. O objetivo é treinar explicações, não apenas decorar.</p>
+      </div>
+      <div class="card">
+        <div class="metric" style="margin-bottom:10px"><span>Progresso</span><b id="scoreText">0/12</b></div>
+        <div class="progress" aria-hidden="true"><div class="progress-bar" id="progressBar"></div></div>
+      </div>
+      <div class="quiz" id="quizContainer" style="margin-top:18px"></div>
+    </section>
+
+    <section class="wrap">
+      <div class="callout">
+        <h2 style="margin:0 0 10px">Como usar em aula ou no Moodle</h2>
+        <p style="color:var(--muted); margin:0 0 14px">Peça que os estudantes explorem as simulações antes da explicação formal. Depois, use as perguntas do quiz para discutir evidências: “qual observação na simulação sustenta sua resposta?”.</p>
+        <div class="icon-row">
+          <span class="pill">GitHub Pages</span>
+          <span class="pill">HTML único</span>
+          <span class="pill">sem bibliotecas externas</span>
+          <span class="pill">responsivo para celular</span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap">
+      <p><strong>Ligação Metálica | Guia de Estudo Interativo.</strong> Material educacional criado para estudo de Química Geral a partir do conteúdo-base fornecido pelo professor. As simulações são modelos didáticos simplificados e não substituem modelos quânticos completos de bandas eletrônicas.</p>
+    </div>
+  </footer>
+
+  <script>
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const TAU = Math.PI * 2;
+    const motion = { enabled:false, ids:{} };
+    const motionButtons = () => Array.from(document.querySelectorAll('.motionToggle'));
+    function cancelLoops(){ Object.values(motion.ids).forEach(id=>cancelAnimationFrame(id)); motion.ids={}; }
+    function syncMotionButtons(){
+      motionButtons().forEach(btn=>{
+        btn.setAttribute('aria-pressed', String(motion.enabled));
+        btn.textContent = motion.enabled ? '⏸ Pausar animações' : '▶ Iniciar animações';
+      });
+    }
+    function setMotion(enabled){
+      motion.enabled = Boolean(enabled);
+      cancelLoops();
+      syncMotionButtons();
+      if(motion.enabled){
+        motion.ids.hero=requestAnimationFrame(drawHero);
+        motion.ids.sea=requestAnimationFrame(drawSea);
+        motion.ids.shine=requestAnimationFrame(drawShine);
+        motion.ids.malleability=requestAnimationFrame(drawMalleability);
+        motion.ids.conduct=requestAnimationFrame(drawConduct);
+      } else {
+        drawHero(0); drawSea(0); drawShine(0); drawMalleability(0); drawConduct(0);
+      }
+    }
+    function clamp(v,min,max){return Math.max(min, Math.min(max, v));}
+    function rand(min,max){return Math.random()*(max-min)+min;}
+    function setupCanvas(canvas){
+      const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+      const rect = canvas.getBoundingClientRect();
+      const parentRect = canvas.parentElement.getBoundingClientRect();
+      const w = Math.max(320, rect.width || parentRect.width || 320);
+      const h = Math.max(260, rect.height || parentRect.height || 340);
+      const pixelW = Math.floor(w*dpr);
+      const pixelH = Math.floor(h*dpr);
+      // Importante: não alterar canvas.style.width/height dentro do loop de animação.
+      // Alterar o tamanho CSS a cada frame causa realimentação de layout e faz a simulação “pular”.
+      if(canvas.width !== pixelW || canvas.height !== pixelH){
+        canvas.width = pixelW;
+        canvas.height = pixelH;
+      }
+      const ctx = canvas.getContext('2d');
+      ctx.setTransform(dpr,0,0,dpr,0,0);
+      return {ctx, w, h, dpr};
+    }
+    function roundRect(ctx,x,y,w,h,r){
+      const rr=Math.min(r,w/2,h/2); ctx.beginPath(); ctx.moveTo(x+rr,y); ctx.arcTo(x+w,y,x+w,y+h,rr); ctx.arcTo(x+w,y+h,x,y+h,rr); ctx.arcTo(x,y+h,x,y,rr); ctx.arcTo(x,y,x+w,y,rr); ctx.closePath();
+    }
+    function drawSphere(ctx,x,y,r,fill,stroke,label){
+      const g=ctx.createRadialGradient(x-r*.35,y-r*.4,r*.1,x,y,r);
+      g.addColorStop(0,'#ffffff'); g.addColorStop(.18,fill); g.addColorStop(1,'#23304f');
+      ctx.fillStyle=g; ctx.beginPath(); ctx.arc(x,y,r,0,TAU); ctx.fill();
+      ctx.strokeStyle=stroke || 'rgba(255,255,255,.22)'; ctx.lineWidth=1; ctx.stroke();
+      if(label){ctx.fillStyle='rgba(255,255,255,.95)'; ctx.font='800 '+Math.max(12,r*.8)+'px system-ui'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(label,x,y+1);}
+    }
+    function drawElectron(ctx,x,y,r=3,alpha=1){
+      ctx.save(); ctx.globalAlpha=alpha;
+      ctx.shadowColor='rgba(99,230,190,.75)'; ctx.shadowBlur=10;
+      ctx.fillStyle='#63e6be'; ctx.beginPath(); ctx.arc(x,y,r,0,TAU); ctx.fill();
+      ctx.restore();
+    }
+
+    // Hero background
+    const hero = document.getElementById('heroCanvas');
+    let heroParticles=[];
+    function initHero(){
+      const {w,h}=setupCanvas(hero);
+      heroParticles = Array.from({length:90},()=>({x:rand(0,w), y:rand(0,h), vx:rand(-.25,.25), vy:rand(-.2,.2), r:rand(1.5,4.5), type:Math.random()>.65?'ion':'e'}));
+    }
+    function drawHero(t){
+      const {ctx,w,h}=setupCanvas(hero);
+      ctx.clearRect(0,0,w,h);
+      for(const p of heroParticles){
+        p.x += p.vx; p.y += p.vy;
+        if(p.x<-20)p.x=w+20; if(p.x>w+20)p.x=-20; if(p.y<-20)p.y=h+20; if(p.y>h+20)p.y=-20;
+      }
+      ctx.strokeStyle='rgba(112,167,255,.10)'; ctx.lineWidth=1;
+      for(let i=0;i<heroParticles.length;i++) for(let j=i+1;j<heroParticles.length;j++){
+        const a=heroParticles[i], b=heroParticles[j]; const dx=a.x-b.x, dy=a.y-b.y, d=Math.hypot(dx,dy);
+        if(d<120){ctx.globalAlpha=(120-d)/150; ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();}
+      }
+      ctx.globalAlpha=1;
+      for(const p of heroParticles){
+        if(p.type==='ion') drawSphere(ctx,p.x,p.y,p.r*2.5,'#70a7ff','rgba(112,167,255,.45)','+'); else drawElectron(ctx,p.x,p.y,p.r, .78);
+      }
+      if(motion.enabled) motion.ids.hero=requestAnimationFrame(drawHero);
+    }
+
+    // Simulation: electron sea
+    const seaCanvas = document.getElementById('seaCanvas');
+    const valenceRange = document.getElementById('valenceRange');
+    const tempRange = document.getElementById('tempRange');
+    let seaElectrons=[];
+    function initSea(){
+      const {w,h}=setupCanvas(seaCanvas); const n=42*Number(valenceRange.value);
+      seaElectrons = Array.from({length:n},()=>({x:rand(20,w-20), y:rand(50,h-20), vx:rand(-1,1), vy:rand(-1,1)}));
+    }
+    function drawSea(time=0){
+      const {ctx,w,h}=setupCanvas(seaCanvas); const valence=Number(valenceRange.value); const temp=Number(tempRange.value);
+      const needed=42*valence; while(seaElectrons.length<needed) seaElectrons.push({x:rand(20,w-20), y:rand(50,h-20), vx:rand(-1,1), vy:rand(-1,1)}); seaElectrons.length=needed;
+      ctx.clearRect(0,0,w,h);
+      const grad=ctx.createLinearGradient(0,0,w,h); grad.addColorStop(0,'rgba(112,167,255,.08)'); grad.addColorStop(1,'rgba(99,230,190,.08)'); ctx.fillStyle=grad; ctx.fillRect(0,0,w,h);
+      const cols=Math.max(5, Math.floor(w/80)); const rows=Math.max(3, Math.floor((h-80)/70)); const sx=w/(cols+1), sy=(h-90)/(rows+1);
+      ctx.strokeStyle='rgba(255,255,255,.08)'; ctx.lineWidth=1;
+      for(let r=0;r<rows;r++) for(let c=0;c<cols;c++){
+        const x=sx*(c+1), y=62+sy*(r+1); drawSphere(ctx,x,y,16,'#ffd166','rgba(255,209,102,.4)','+');
+      }
+      const speed=.45 + temp/55;
+      for(const e of seaElectrons){
+        e.vx += rand(-.04,.04) * speed; e.vy += rand(-.04,.04) * speed;
+        const mag=Math.hypot(e.vx,e.vy)||1; const max=.8+temp/38; if(mag>max){e.vx=e.vx/mag*max; e.vy=e.vy/mag*max;}
+        e.x += e.vx; e.y += e.vy;
+        if(e.x<8||e.x>w-8)e.vx*=-1; if(e.y<44||e.y>h-8)e.vy*=-1;
+        e.x=clamp(e.x,8,w-8); e.y=clamp(e.y,44,h-8); drawElectron(ctx,e.x,e.y,2.6,.85);
+      }
+      document.getElementById('valenceValue').textContent=valence;
+      document.getElementById('tempValue').textContent=temp+'%';
+      document.getElementById('mobilityReadout').textContent=temp<35?'baixa':temp<70?'média':'alta';
+      document.getElementById('resistReadout').textContent=(1+temp/100).toLocaleString('pt-BR',{minimumFractionDigits:2, maximumFractionDigits:2})+'×';
+      if(motion.enabled) motion.ids.sea=requestAnimationFrame(drawSea);
+    }
+    valenceRange.addEventListener('input', ()=>{ initSea(); drawSea(0); });
+    tempRange.addEventListener('input', ()=>{ drawSea(0); });
+
+    // Unit cells
+    const cellCanvas = document.getElementById('cellCanvas'); const cellSelect=document.getElementById('cellSelect');
+    const cellData={
+      bcc:{pill:'CCC · corpo centrado', title:'Cúbica de Corpo Centrado', examples:'Fe, Cr, W', idea:'Cátions nos vértices do cubo e um cátion no centro do corpo.'},
+      fcc:{pill:'CFC · face centrada', title:'Cúbica de Face Centrada', examples:'Ni, Cu, Au', idea:'Cátions nos vértices e nos centros das faces do cubo.'},
+      hcp:{pill:'HC · hexagonal compacta', title:'Hexagonal Compacta', examples:'Zn, Cd, Be', idea:'Empacotamento em camadas hexagonais compactas.'}
+    };
+    function project3D(x,y,z,cx,cy,s){ return {x:cx+(x-y)*s, y:cy+(x+y)*s*.42-z*s}; }
+    function drawUnitCell(){
+      const {ctx,w,h}=setupCanvas(cellCanvas); const type=cellSelect.value; ctx.clearRect(0,0,w,h);
+      ctx.fillStyle='rgba(255,255,255,.025)'; ctx.fillRect(0,0,w,h);
+      const cx=w/2, cy=h*.60, s=Math.min(w,h)/5.5;
+      if(type==='hcp'){
+        const top=[], bot=[]; for(let i=0;i<6;i++){ const a=TAU*i/6+Math.PI/6; top.push({x:cx+Math.cos(a)*s*1.35,y:cy-s*.85+Math.sin(a)*s*.55}); bot.push({x:cx+Math.cos(a)*s*1.35,y:cy+s*.45+Math.sin(a)*s*.55}); }
+        ctx.strokeStyle='rgba(112,167,255,.35)'; ctx.lineWidth=2;
+        [top,bot].forEach(poly=>{ctx.beginPath(); poly.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y)); ctx.closePath(); ctx.stroke();});
+        for(let i=0;i<6;i++){ctx.beginPath(); ctx.moveTo(top[i].x,top[i].y); ctx.lineTo(bot[i].x,bot[i].y); ctx.stroke();}
+        [...bot,...top].forEach((p,i)=>drawSphere(ctx,p.x,p.y,14,'#70a7ff','rgba(112,167,255,.5)','+'));
+        for(let i=0;i<3;i++){ const a=TAU*(i/3)+Math.PI/2; drawSphere(ctx,cx+Math.cos(a)*s*.68,cy-Math.sin(a)*s*.1,15,'#ffd166','rgba(255,209,102,.5)','+'); }
+      } else {
+        const pts=[]; for(const x of [0,1]) for(const y of [0,1]) for(const z of [0,1]) pts.push({x,y,z,p:project3D(x-.5,y-.5,z-.5,cx,cy,s*1.6)});
+        const edgePairs=[[0,1],[0,2],[0,4],[3,1],[3,2],[3,7],[5,1],[5,4],[5,7],[6,2],[6,4],[6,7]];
+        ctx.strokeStyle='rgba(112,167,255,.35)'; ctx.lineWidth=2; for(const [a,b] of edgePairs){ctx.beginPath(); ctx.moveTo(pts[a].p.x,pts[a].p.y); ctx.lineTo(pts[b].p.x,pts[b].p.y); ctx.stroke();}
+        pts.sort((a,b)=>a.p.y-b.p.y).forEach(o=>drawSphere(ctx,o.p.x,o.p.y,14,'#70a7ff','rgba(112,167,255,.55)','+'));
+        if(type==='bcc'){
+          const p=project3D(0,0,0,cx,cy,s*1.6); drawSphere(ctx,p.x,p.y,19,'#ffd166','rgba(255,209,102,.6)','+');
+        } else {
+          const faces=[[.5,0,0],[-.5,0,0],[0,.5,0],[0,-.5,0],[0,0,.5],[0,0,-.5]];
+          faces.map(f=>project3D(f[0],f[1],f[2],cx,cy,s*1.6)).sort((a,b)=>a.y-b.y).forEach(p=>drawSphere(ctx,p.x,p.y,15,'#ffd166','rgba(255,209,102,.6)','+'));
+        }
+      }
+      document.getElementById('cellPill').textContent=cellData[type].pill;
+      document.getElementById('cellReadout').innerHTML='<div class="metric"><span>Estrutura</span><b>'+cellData[type].title+'</b></div><div class="metric"><span>Exemplos</span><b>'+cellData[type].examples+'</b></div><p>'+cellData[type].idea+'</p>';
+    }
+    cellSelect.addEventListener('change', ()=>{ drawUnitCell(); });
+
+    // Shine
+    const shineCanvas=document.getElementById('shineCanvas'); const lightRange=document.getElementById('lightRange'); const freqRange=document.getElementById('freqRange');
+    function drawWave(ctx,x0,y0,len,amp,phase,color,dir=1){
+      ctx.strokeStyle=color; ctx.lineWidth=3; ctx.beginPath();
+      for(let i=0;i<=len;i++){ const x=x0+i*dir; const y=y0+Math.sin(i/18+phase)*amp; i?ctx.lineTo(x,y):ctx.moveTo(x,y); }
+      ctx.stroke();
+    }
+    function drawShine(t=0){
+      const {ctx,w,h}=setupCanvas(shineCanvas); const intensity=Number(lightRange.value); const freq=Number(freqRange.value);
+      ctx.clearRect(0,0,w,h); ctx.fillStyle='rgba(255,255,255,.025)'; ctx.fillRect(0,0,w,h);
+      const slabY=h*.62, slabH=h*.20;
+      const metal=ctx.createLinearGradient(0,slabY,w,slabY+slabH); metal.addColorStop(0,'#333b4f'); metal.addColorStop(.45,'#aeb8c9'); metal.addColorStop(1,'#252b3a');
+      ctx.fillStyle=metal; roundRect(ctx,w*.14,slabY,w*.72,slabH,18); ctx.fill(); ctx.strokeStyle='rgba(255,255,255,.18)'; ctx.stroke();
+      const phase=t/900*(freq/50); const amp=8+intensity/10;
+      drawWave(ctx,w*.18,h*.22,w*.30,amp,phase,'rgba(112,167,255,.92)',1);
+      drawWave(ctx,w*.82,h*.25,w*.30,amp,phase,'rgba(255,209,102,.92)',-1);
+      ctx.strokeStyle='rgba(112,167,255,.35)'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(w*.42,h*.28); ctx.lineTo(w*.49,slabY+6); ctx.stroke();
+      ctx.strokeStyle='rgba(255,209,102,.35)'; ctx.beginPath(); ctx.moveTo(w*.58,slabY+6); ctx.lineTo(w*.72,h*.30); ctx.stroke();
+      for(let i=0;i<11;i++){ const x=w*.30+i*w*.04; const y=slabY+slabH*.45+Math.sin(phase*3+i)*intensity/30; drawElectron(ctx,x,y,4,.95); ctx.fillStyle='rgba(255,255,255,.35)'; ctx.fillRect(x-1,slabY+8,2,slabH-16); }
+      ctx.fillStyle='rgba(238,244,255,.9)'; ctx.font='800 14px system-ui'; ctx.textAlign='center'; ctx.fillText('oscilação coletiva dos elétrons', w/2, slabY+slabH+30);
+      document.getElementById('lightValue').textContent=intensity+'%'; document.getElementById('freqValue').textContent=freq+'%';
+      if(motion.enabled) motion.ids.shine=requestAnimationFrame(drawShine);
+    }
+    lightRange.addEventListener('input', ()=>{ drawShine(0); });
+    freqRange.addEventListener('input', ()=>{ drawShine(0); });
+
+    // Malleability
+    const malCanvas=document.getElementById('malleabilityCanvas'); let malMode='hammer', malPulse=0;
+    document.getElementById('hammerBtn').addEventListener('click',()=>{malMode='hammer'; malPulse=1; drawMalleability(0);});
+    document.getElementById('wireBtn').addEventListener('click',()=>{malMode='wire'; malPulse=1; drawMalleability(0);});
+    function drawMalleability(t=0){
+      const {ctx,w,h}=setupCanvas(malCanvas); ctx.clearRect(0,0,w,h); ctx.fillStyle='rgba(255,255,255,.025)'; ctx.fillRect(0,0,w,h);
+      malPulse*=.965; const intensity=Math.max(malPulse, .25+.25*Math.sin(t/900));
+      if(malMode==='hammer'){
+        ctx.fillStyle='rgba(255,255,255,.16)'; roundRect(ctx,w*.34,24,w*.32,48,10); ctx.fill(); ctx.fillStyle='rgba(255,209,102,.85)'; ctx.fillRect(w*.485,72, w*.03, 58+intensity*35);
+      } else {
+        ctx.strokeStyle='rgba(255,209,102,.85)'; ctx.lineWidth=5; ctx.beginPath(); ctx.moveTo(w*.12,h*.50); ctx.lineTo(w*.04,h*.50); ctx.lineTo(w*.09,h*.45); ctx.moveTo(w*.04,h*.50); ctx.lineTo(w*.09,h*.55); ctx.stroke(); ctx.beginPath(); ctx.moveTo(w*.88,h*.50); ctx.lineTo(w*.96,h*.50); ctx.lineTo(w*.91,h*.45); ctx.moveTo(w*.96,h*.50); ctx.lineTo(w*.91,h*.55); ctx.stroke();
+      }
+      const cols=8, rows=4, sx=w*.72/(cols-1), sy=h*.43/(rows-1), x0=w*.14, y0=h*.42;
+      for(let r=0;r<rows;r++) for(let c=0;c<cols;c++){
+        let x=x0+c*sx, y=y0+r*sy;
+        if(malMode==='hammer') x += (r<2? intensity*28 : intensity*9) * Math.sin((c+r)*.8);
+        if(malMode==='wire'){ x = w*.18 + c*(w*.64/(cols-1)); y = h*.50 + (r-1.5)*sy*(.55-intensity*.18); }
+        drawSphere(ctx,x,y,15,'#70a7ff','rgba(112,167,255,.55)','+');
+      }
+      for(let i=0;i<76;i++){
+        const x=w*.12+(i%19)*(w*.76/18)+Math.sin(t/420+i)*4; const y=h*.35+Math.floor(i/19)*(h*.35/3)+Math.cos(t/500+i)*4;
+        drawElectron(ctx,x,y,2.4,.55);
+      }
+      if(motion.enabled) motion.ids.malleability=requestAnimationFrame(drawMalleability);
+    }
+
+    // Conductivity
+    const conductCanvas=document.getElementById('conductCanvas'); const fieldRange=document.getElementById('fieldRange'); const metalTempRange=document.getElementById('metalTempRange'); let conductElectrons=[];
+    function initConduct(){ const {w,h}=setupCanvas(conductCanvas); conductElectrons=Array.from({length:58},()=>({x:rand(w*.18,w*.82), y:rand(h*.34,h*.68), vx:rand(-.4,.4)})); }
+    function drawConduct(t=0){
+      const {ctx,w,h}=setupCanvas(conductCanvas); const field=Number(fieldRange.value); const temp=Number(metalTempRange.value);
+      ctx.clearRect(0,0,w,h); ctx.fillStyle='rgba(255,255,255,.025)'; ctx.fillRect(0,0,w,h);
+      const wireY=h*.35, wireH=h*.34; const wireX=w*.12, wireW=w*.76;
+      const g=ctx.createLinearGradient(wireX,0,wireX+wireW,0); g.addColorStop(0,'rgba(255,107,107,.32)'); g.addColorStop(.5,'rgba(112,167,255,.12)'); g.addColorStop(1,'rgba(99,230,190,.22)');
+      ctx.fillStyle=g; roundRect(ctx,wireX,wireY,wireW,wireH,28); ctx.fill(); ctx.strokeStyle='rgba(255,255,255,.16)'; ctx.stroke();
+      ctx.fillStyle='rgba(255,107,107,.9)'; ctx.font='900 14px system-ui'; ctx.textAlign='left'; ctx.fillText('quente', wireX, wireY-12); ctx.fillStyle='rgba(99,230,190,.9)'; ctx.textAlign='right'; ctx.fillText('frio', wireX+wireW, wireY-12);
+      ctx.strokeStyle='rgba(255,255,255,.35)'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(wireX+20,wireY+wireH+28); ctx.lineTo(wireX+wireW-20,wireY+wireH+28); ctx.stroke(); ctx.fillStyle='rgba(255,255,255,.72)'; ctx.textAlign='center'; ctx.fillText('fluxo de energia térmica', w/2, wireY+wireH+52);
+      const drift=(field-50)/80; const jitter=temp/55;
+      for(const e of conductElectrons){
+        e.x += drift + rand(-jitter,jitter); e.y += Math.sin(t/500+e.x*.03)*.15 + rand(-jitter*.45,jitter*.45);
+        if(e.x<wireX+12)e.x=wireX+wireW-12; if(e.x>wireX+wireW-12)e.x=wireX+12; e.y=clamp(e.y,wireY+12,wireY+wireH-12); drawElectron(ctx,e.x,e.y,3,.9);
+      }
+      for(let i=0;i<9;i++){ const x=wireX+44+i*(wireW-88)/8; const y=wireY+wireH+28; ctx.strokeStyle='rgba(255,209,102,.7)'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x+18,y); ctx.lineTo(x+12,y-5); ctx.moveTo(x+18,y); ctx.lineTo(x+12,y+5); ctx.stroke(); }
+      const rho=1+temp/100; const sigma=1/rho;
+      document.getElementById('fieldValue').textContent=field+'%'; document.getElementById('metalTempValue').textContent=temp+'%';
+      document.getElementById('sigmaReadout').textContent=sigma.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'×';
+      document.getElementById('rhoReadout').textContent=rho.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'×';
+      document.getElementById('heatReadout').textContent=temp<35?'baixa':temp<70?'média':'alta';
+      if(motion.enabled) motion.ids.conduct=requestAnimationFrame(drawConduct);
+    }
+    fieldRange.addEventListener('input', ()=>{ drawConduct(0); });
+    metalTempRange.addEventListener('input', ()=>{ drawConduct(0); });
+
+    // Alloy
+    const alloyCanvas=document.getElementById('alloyCanvas'); const alloySelect=document.getElementById('alloySelect'); const alloyReadout=document.getElementById('alloyReadout');
+    const alloys={
+      latao:{name:'Latão', comp:'até 40% de zinco em cobre', ratio:.40, metals:['Cu','Zn']},
+      bronze:{name:'Bronze', comp:'metal diferente de Zn ou Ni em cobre; bronze para fundição: 10% Sn e 5% Pb', ratio:.15, metals:['Cu','Sn/Pb']},
+      cuproniquel:{name:'Cuproníquel', comp:'níquel em cobre; cunhagem: 25% de níquel', ratio:.25, metals:['Cu','Ni']},
+      pewter:{name:'Peltre', comp:'6% Sb e 1,5% Cu em Sn', ratio:.075, metals:['Sn','Sb/Cu']},
+      solda:{name:'Solda', comp:'estanho e chumbo', ratio:.50, metals:['Sn','Pb']},
+      inox:{name:'Aço inoxidável', comp:'acima de 12% de cromo em ferro', ratio:.12, metals:['Fe','Cr']},
+      ouro18:{name:'Ouro amarelo 18K', comp:'ouro com 12,5% prata e 12,5% cobre', ratio:.25, metals:['Au','Ag/Cu']},
+      ouroVermelho:{name:'Ouro vermelho', comp:'ouro e cobre, cerca de 25% de cobre', ratio:.25, metals:['Au','Cu']},
+      ouroBranco:{name:'Ouro branco', comp:'ouro, 9% prata e 16% paládio', ratio:.25, metals:['Au','Ag/Pd']}
+    };
+    function drawAlloy(){
+      const {ctx,w,h}=setupCanvas(alloyCanvas); const a=alloys[alloySelect.value]; ctx.clearRect(0,0,w,h); ctx.fillStyle='rgba(255,255,255,.025)'; ctx.fillRect(0,0,w,h);
+      const cols=9, rows=5, sx=w*.74/(cols-1), sy=h*.50/(rows-1), x0=w*.13, y0=h*.27;
+      let k=0; for(let r=0;r<rows;r++) for(let c=0;c<cols;c++){
+        const isSolute=((k*37)%100)/100 < a.ratio; const x=x0+c*sx+((r%2)*sx*.12), y=y0+r*sy;
+        drawSphere(ctx,x,y,isSolute?17:15,isSolute?'#ffd166':'#70a7ff',isSolute?'rgba(255,209,102,.65)':'rgba(112,167,255,.55)',isSolute?'*':'+'); k++;
+      }
+      ctx.fillStyle='rgba(238,244,255,.92)'; ctx.font='900 18px system-ui'; ctx.textAlign='center'; ctx.fillText(a.name, w/2, h*.87);
+      alloyReadout.innerHTML='<div class="metric"><span>Liga</span><b>'+a.name+'</b></div><div class="metric"><span>Matriz/soluto</span><b>'+a.metals.join(' + ')+'</b></div><p>'+a.comp+'</p>';
+    }
+    alloySelect.addEventListener('change', ()=>{ drawAlloy(); });
+
+    // Bars
+    const metals=[
+      {m:'Mg', fusion:650, boiling:1090}, {m:'Cu', fusion:1085, boiling:2927}, {m:'Al', fusion:660, boiling:2519}, {m:'Fe', fusion:1538, boiling:2861}, {m:'Zn', fusion:420, boiling:907}
+    ];
+    const barSelect=document.getElementById('barSelect'); const barChart=document.getElementById('barChart');
+    function drawBars(){ const key=barSelect.value; const max=Math.max(...metals.map(d=>d[key])); barChart.innerHTML=metals.map(d=>'<div class="bar-row"><span>'+d.m+'</span><div class="bar-track"><div class="bar-fill" style="width:'+((d[key]/max)*100).toFixed(1)+'%"></div></div><span>'+d[key]+' °C</span></div>').join(''); }
+    barSelect.addEventListener('change', ()=>{ drawBars(); });
+
+    // Flashcards
+    document.querySelectorAll('.flip').forEach(card=>{ card.addEventListener('click',()=>card.classList.toggle('active')); card.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault(); card.classList.toggle('active');}}); });
+
+    // Quiz
+    const quizQuestions=[
+      {q:'1. Qual descrição representa melhor a ligação metálica?', a:1, options:['Pares de elétrons localizados entre dois átomos.','Atração entre cátions metálicos e elétrons deslocalizados.','Transferência completa entre um metal e um ametal.','Compartilhamento que sempre obedece à regra do octeto.'], f:'A ligação metálica é coletiva: a rede de cátions é estabilizada por elétrons móveis no sólido.'},
+      {q:'2. Por que o modelo do octeto não é suficiente para explicar a ligação metálica?', a:2, options:['Porque metais não têm núcleo.','Porque os elétrons ficam presos em ligações duplas.','Porque os elétrons de valência estão deslocalizados e não pertencem a um único par de átomos.','Porque sólidos metálicos não têm estrutura organizada.'], f:'O ponto-chave é a deslocalização eletrônica. O modelo não é uma soma simples de ligações covalentes localizadas.'},
+      {q:'3. O que significa dizer que a ligação metálica é não direcional?', a:0, options:['A coesão não depende de uma orientação fixa entre pares específicos de átomos.','Os elétrons ficam parados.','Os cátions não formam redes.','A luz não interage com metais.'], f:'Essa não direcionalidade ajuda a explicar maleabilidade e ductilidade.'},
+      {q:'4. Ao martelar um metal, por que ele pode deformar sem quebrar imediatamente?', a:3, options:['Porque todos os cátions viram átomos neutros.','Porque a estrutura deixa de ser cristalina para sempre.','Porque a regra do octeto passa a valer.','Porque os cátions deslizam e os elétrons móveis se redistribuem mantendo a coesão.'], f:'A redistribuição do mar de elétrons acompanha o deslocamento dos cátions.'},
+      {q:'5. Qual par está corretamente associado a células unitárias comuns?', a:1, options:['CCC: ouro; CFC: zinco; HC: ferro.','CCC: Fe/Cr/W; CFC: Ni/Cu/Au; HC: Zn/Cd/Be.','CCC: NaCl; CFC: quartzo; HC: diamante.','CCC: apenas gases; CFC: apenas líquidos; HC: apenas ametais.'], f:'Esses exemplos aparecem como referência para estruturas cristalinas metálicas comuns.'},
+      {q:'6. O brilho metálico é explicado principalmente por:', a:0, options:['Oscilação e reemissão de energia pelos elétrons livres.','Evaporação do metal.','Formação de íons negativos na superfície.','Quebra da rede cristalina.'], f:'Elétrons livres respondem à luz incidente e reemitem radiação, produzindo reflexão.'},
+      {q:'7. Em metais, quando a temperatura aumenta, em geral:', a:2, options:['A resistividade diminui e a condutividade aumenta.','A ligação metálica vira iônica.','A resistividade aumenta e a condutividade diminui.','Os elétrons de valência desaparecem.'], f:'Mais temperatura significa mais vibração/espalhamento, dificultando o fluxo ordenado dos elétrons.'},
+      {q:'8. Qual material da tabela conduz melhor eletricidade?', a:1, options:['Quartzo.','Prata.','NaCl sólido.','Diamante.'], f:'Na tabela, a prata apresenta a maior condutividade entre os exemplos listados.'},
+      {q:'9. O que é uma liga metálica?', a:3, options:['Um gás formado por metais.','Um cristal sem elétrons.','Um composto que só existe em solução aquosa.','Uma solução sólida preparada por fusão de componentes e resfriamento.'], f:'Ligas são essenciais porque ajustam propriedades do metal para usos específicos.'},
+      {q:'10. Qual alternativa diferencia maleabilidade e ductilidade?', a:0, options:['Maleável: moldado em lâminas; dúctil: transformado em fio.','Maleável: conduz calor; dúctil: reflete luz.','Maleável: forma cátions; dúctil: forma ânions.','Maleável: evapora; dúctil: cristaliza.'], f:'Essa distinção é direta e ajuda a nomear o tipo de deformação observada.'},
+      {q:'11. A condução térmica em metais é favorecida porque:', a:2, options:['A rede não contém cátions.','Metais não absorvem energia.','Elétrons livres transportam energia da região quente para a fria.','Apenas prótons se movem pelo fio.'], f:'Os elétrons móveis participam tanto da condução elétrica quanto da condução térmica.'},
+      {q:'12. Qual conclusão integra melhor todo o conteúdo?', a:1, options:['Cada propriedade metálica exige um modelo totalmente independente.','As propriedades metálicas podem ser explicadas a partir de cátions organizados, elétrons deslocalizados e ligação não direcional.','Metais conduzem eletricidade porque não têm elétrons.','Ligas metálicas só alteram a cor, nunca as propriedades.'], f:'Esta é a síntese conceitual: um mesmo modelo microscópico explica várias propriedades macroscópicas.'}
+    ];
+    const quizContainer=document.getElementById('quizContainer'); let answered=new Set();
+    quizContainer.innerHTML=quizQuestions.map((item,idx)=>'<article class="q-card" data-q="'+idx+'"><h3>'+item.q+'</h3><div class="options">'+item.options.map((op,i)=>'<button class="option" data-i="'+i+'" type="button">'+op+'</button>').join('')+'</div><div class="feedback"></div></article>').join('');
+    quizContainer.addEventListener('click', e=>{
+      const btn=e.target.closest('.option'); if(!btn) return; const card=btn.closest('.q-card'); const idx=Number(card.dataset.q); const chosen=Number(btn.dataset.i); const item=quizQuestions[idx];
+      card.querySelectorAll('.option').forEach((b,i)=>{ b.disabled=true; if(i===item.a)b.classList.add('correct'); if(i===chosen && i!==item.a)b.classList.add('wrong'); });
+      const fb=card.querySelector('.feedback'); fb.classList.add('show'); fb.innerHTML=(chosen===item.a?'<strong>Correto.</strong> ':'<strong>Revise a ideia.</strong> ')+item.f;
+      answered.add(idx); document.getElementById('scoreText').textContent=answered.size+'/'+quizQuestions.length; document.getElementById('progressBar').style.width=(answered.size/quizQuestions.length*100)+'%';
+    });
+
+    // Init
+    function initAll(){ initHero(); initSea(); initConduct(); drawUnitCell(); drawAlloy(); drawBars(); drawHero(0); drawSea(0); drawShine(0); drawMalleability(0); drawConduct(0); syncMotionButtons(); }
+    window.addEventListener('resize', ()=>{ cancelLoops(); initAll(); if(motion.enabled) setMotion(true); });
+    document.addEventListener('click', e=>{ const btn=e.target.closest('.motionToggle'); if(btn) setMotion(!motion.enabled); });
+    initAll();
+  </script>
+</body>
+</html>
